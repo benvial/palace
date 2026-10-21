@@ -194,7 +194,7 @@ protected:
   // independent of synthesis.
   bool has_other_A2 = false;
   // One-time self-check state for the factored online A2_other path (SolvePROM). On the
-  // first factored online solve we verify that the factored sum (0.5/ω·M_ff_r +
+  // first factored online solve we verify that the factored sum (-0.5/ω·M_ff_r +
   // Σ_g EvaluateScalar(g,ω)/i·Asig_g_r) reproduces the full HDM projection of A2_other(ω)
   // to round-off. This guards against a future ω-dependent non-wave-port BC being added to
   // GetExtraSystemMatrix without a matching factored operator (which would otherwise be
@@ -225,8 +225,8 @@ protected:
   // circuit synthesis the same way as the wave ports (each contributes i·f(ω)·M_proj·v to
   // Aᵣ(ω); project M_proj once, fit/inject the scalar f(ω)). Stored with the boundary mass
   // in the IMAGINARY slot (matching Mwp_p) so the synthesis path treats them uniformly.
-  //   - Second-order farfield ABC: f(ω) = 0.5/ω, a single exact pole at ω=0 (residue 0.5),
-  //     injected analytically (no fit). M_ff_ is the curl-curl boundary matrix.
+  //   - Second-order farfield ABC: f(ω) = -0.5/ω, a single exact pole at ω=0 (residue
+  //     -0.5), injected analytically (no fit). M_ff_ is the curl-curl boundary matrix.
   //   - Surface conductivity, one entry per attribute group g: f(ω) = ω/Z_g(ω) (the i is
   //     the implicit slot factor; surf_sigma_op.EvaluateScalar returns i·ω/Z, so the scalar
   //     used here is EvaluateScalar/i, generally complex), fit by poly+AAA.
@@ -469,7 +469,7 @@ protected:
       Eigen::MatrixXcd &Mr_corr);
 
   // Build an aux block for one (matrix, pole-residue list) contribution, used by the ABC
-  // (analytic single pole at ω=0, residue 0.5), surf-σ, and rational impedance (fitted
+  // (analytic single pole at ω=0, residue -0.5), surf-σ, and rational impedance (fitted
   // poles). `label` (required, nonempty) prefixes the aux-state row names in the
   // synthesized matrices. `Mp_r` is the projected purely-imaginary boundary mass; a signed
   // symmetric eigendecomposition of its imaginary part gives the coupling directions

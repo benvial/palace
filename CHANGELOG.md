@@ -48,6 +48,11 @@ See the [developer notes on schema versioning](https://awslabs.github.io/palace/
 
 #### Bug Fixes
 
+  - Fixed the sign of the curl-curl term of the second-order absorbing boundary condition
+    (`config["Boundaries"]["Absorbing"]["Order"] = 2`), which was the opposite of the
+    documented condition and reflected more than the first-order condition. Results with
+    second-order absorbing boundaries change for driven (uniform and adaptive) and
+    eigenmode simulations; eigenmode quality factors were overestimated.
   - Fixed boundary coefficient terms being added to attributes outside their boundary when
     attributes with equal properties shared one material entry (a term stamped per attribute
     or per port element was counted once per attribute on all of them). This affects every

@@ -574,7 +574,7 @@ RomOperator::RomOperator(const IoData &iodata, SpaceOperator &space_op,
   // Cache the ω-independent boundary masses for the other frequency-dependent BCs so they
   // can be folded into circuit synthesis (projected per basis growth in UpdatePROM, fit
   // in CalculateNormalizedPROMMatrices). On the imaginary slot, matching Mwp_p.
-  //   - 2nd-order farfield ABC: M_ff with full term i·(0.5/ω)·M_ff.
+  //   - 2nd-order farfield ABC: M_ff with full term -i·(0.5/ω)·M_ff.
   //   - Surface conductivity: one boundary mass per active attribute group, term
   //     (i·ω/Z_g(ω))·A_σ_g.
   M_ff_ = space_op.GetFarfieldBoundaryCurlCurlMatrix<ComplexOperator>(Operator::DIAG_ZERO,
@@ -1321,12 +1321,12 @@ void RomOperator::SolvePROM(int excitation_idx, double omega, ComplexVector &u)
     // fallback for the rest of the sweep.
     auto apply_factored_other_A2 = [&]()
     {
-      // Factored 2nd-order farfield ABC: A2_ff(ω) = i·(0.5/ω)·M_ff. M_ff_r carries the
-      // boundary mass on the imaginary slot (the i), so scaling by the real scalar 0.5/ω
+      // Factored 2nd-order farfield ABC: A2_ff(ω) = -i·(0.5/ω)·M_ff. M_ff_r carries the
+      // boundary mass on the imaginary slot (the i), so scaling by the real scalar -0.5/ω
       // reproduces the full contribution.
       if (M_ff_ && M_ff_r.rows() == static_cast<long>(V.size()))
       {
-        Ar += std::complex<double>(0.5 / omega, 0.0) * M_ff_r;
+        Ar += std::complex<double>(-0.5 / omega, 0.0) * M_ff_r;
       }
       // Factored surface conductivity, per active group: A2_σ,g(ω) = (i·ω/Z_g(ω))·A_σ,g =
       // EvaluateScalar(g,ω)·A_σ,g. Asig_g_r[g] carries A_σ,g on the imaginary slot, so the
@@ -2542,19 +2542,19 @@ RomOperator::CalculateNormalizedPROMMatrices(const Units &units) const
   // the i). Only meaningful with a nonzero sweep band.
   if (sweep_omega_max > sweep_omega_min)
   {
-    // 2nd-order farfield ABC: i·(0.5/ω)·M_ff. f(ω) = 0.5/ω is EXACTLY a single pole at ω=0
-    // with residue 0.5 — inject it analytically (no polynomial part, no fit), as a frozen
-    // aux block. This is the synthesis analogue of the NLEPS frozen-ABC seed.
+    // 2nd-order farfield ABC: -i·(0.5/ω)·M_ff. f(ω) = -0.5/ω is EXACTLY a single pole at
+    // ω=0 with residue -0.5 — inject it analytically (no polynomial part, no fit), as a
+    // frozen aux block. This is the synthesis analogue of the NLEPS frozen-ABC seed.
     if (M_ff_ && M_ff_r.rows() == Kr.rows())
     {
       auto blk =
           MakeAuxBlock("farfield", M_ff_r, {std::complex<double>(0.0, 0.0)},
-                       {std::complex<double>(0.5, 0.0)}, waveport_synthesis_rank_tol);
+                       {std::complex<double>(-0.5, 0.0)}, waveport_synthesis_rank_tol);
       if (blk)
       {
         aux_blocks_total.push_back(*blk);
         Mpi::Print(" Second-order farfield ABC: folded into synthesis as 1 pole at ω=0 "
-                   "(residue 0.5)\n");
+                   "(residue -0.5)\n");
       }
     }
     // Surface conductivity, one group at a time: f_g(ω) = ω/Z_g(ω) (the i is the implicit
